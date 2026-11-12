@@ -18,10 +18,11 @@
   /* =========================================================
      Tabs / single-page navigation
      ========================================================= */
-  var TABS = ['dashboard', 'build', 'samples', 'features', 'process', 'packages', 'faq', 'contact'];
+  var TABS = ['dashboard', 'build', 'work', 'features', 'process', 'packages', 'faq', 'contact'];
   var currentTab = null;
 
   function go(id, push) {
+    if (id === 'samples') id = 'work';
     if (TABS.indexOf(id) < 0) id = 'dashboard';
     var pane = document.getElementById('tab-' + id);
     $$('.content > .tab-pane').forEach(function (p) {
@@ -41,6 +42,10 @@
     var side = document.getElementById('sidebar');
     if (hasBS() && side.classList.contains('show')) bootstrap.Offcanvas.getOrCreateInstance(side).hide();
     window.scrollTo(0, 0);
+    var content = $('.content');
+    content.classList.toggle('is-scroll', id === 'dashboard');
+    content.scrollTop = 0;
+    document.dispatchEvent(new CustomEvent('lr:tab', { detail: id }));
 
     if (id === 'dashboard' && currentTab && currentTab !== 'dashboard') replayDashboard();
     currentTab = id;
@@ -57,9 +62,7 @@
   /* =========================================================
      Theme (top bar button + sidebar switch stay in sync)
      ========================================================= */
-  if (!store.get('lr-theme') && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) {
-    root.setAttribute('data-bs-theme', 'dark');
-  }
+  // new visitors always start in light mode; their own choice is remembered
   function syncSwitch() { $('#themeSwitch').setAttribute('aria-checked', root.getAttribute('data-bs-theme') === 'dark' ? 'true' : 'false'); }
   function toggleTheme() {
     var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
@@ -67,6 +70,7 @@
     store.set('lr-theme', next);
     syncSwitch();
     recolorCharts();
+    document.dispatchEvent(new CustomEvent('lr:theme'));
   }
   $('#themeToggle').addEventListener('click', toggleTheme);
   $('#themeSwitch').addEventListener('click', toggleTheme);
@@ -364,7 +368,7 @@
   }, 3000);
 
   /* =========================================================
-     Portfolio (8 sample designs)
+     Our Work (9 business system designs)
      ========================================================= */
   var P = [
     { f: '01-lending', t: 'Sterling Peak Lending', i: 'Lending & Financing', c: 'finance', d: '#C9A24B' },
@@ -374,13 +378,14 @@
     { f: '05-contractors', t: 'Ironframe Builders', i: 'Contractors & Projects', c: 'property', d: '#F59E0B' },
     { f: '06-wholesale', t: 'Harvest Field Agri Supply', i: 'Wholesale & Distribution', c: 'trade', d: '#4F6228' },
     { f: '07-bookings', t: 'Coralbay Events & Catering', i: 'Events & Bookings', c: 'services', d: '#FF6F61' },
-    { f: '08-organizations', t: 'Harborlight Community Church', i: 'Organizations', c: 'education', d: '#5B2A4A' }
+    { f: '08-organizations', t: 'Harborlight Community Church', i: 'Organizations', c: 'education', d: '#5B2A4A' },
+    { f: '09-solar', t: 'Brightvolt Energy', i: 'Solar & Energy', c: 'property', d: '#F4A33A' }
   ];
   var FILTERS = [['all', 'All'], ['finance', 'Finance'], ['services', 'Services'], ['property', 'Property & Projects'], ['trade', 'Trade'], ['education', 'Schools & Orgs']];
   var grid = $('#portfolio');
   grid.innerHTML = P.map(function (p, n) {
-    return '<button type="button" class="card-x pf" data-i="' + n + '" data-c="' + p.c + '" aria-label="Open ' + p.t + ' sample design">' +
-      '<span class="pf-img"><img src="assets/img/portfolio/' + p.f + '-thumb.webp" alt="' + p.t + ' sample system design" loading="lazy" width="800" height="500">' +
+    return '<button type="button" class="card-x pf" data-i="' + n + '" data-c="' + p.c + '" aria-label="Open ' + p.t + ' design">' +
+      '<span class="pf-img"><img src="assets/img/portfolio/' + p.f + '-thumb.webp" alt="' + p.t + ' system design" loading="lazy" width="800" height="500">' +
       '<span class="pf-zoom"><svg class="ic"><use href="#i-expand"/></svg></span></span>' +
       '<span class="pf-cap"><i class="pf-dot" style="background:' + p.d + '"></i><span style="min-width:0"><b>' + p.t + '</b><small>' + p.i + '</small></span></span></button>';
   }).join('');
@@ -398,7 +403,7 @@
     cur = (n + P.length) % P.length;
     var p = P[cur];
     $('#viewerImg').src = 'assets/img/portfolio/' + p.f + '.webp';
-    $('#viewerImg').alt = p.t + ' sample system design';
+    $('#viewerImg').alt = p.t + ' system design';
     $('#viewerTitle').textContent = p.t;
     $('#viewerSub').textContent = p.i;
   }
@@ -407,6 +412,9 @@
     openViewer(+card.getAttribute('data-i'));
     if (hasBS()) bootstrap.Modal.getOrCreateInstance('#viewer').show();
   });
+  window.LR = window.LR || {};
+  window.LR.openDesign = function (n) { openViewer(n); if (hasBS()) bootstrap.Modal.getOrCreateInstance('#viewer').show(); };
+  window.LR.go = go;
   $('#prevBtn').addEventListener('click', function () { openViewer(cur - 1); });
   $('#nextBtn').addEventListener('click', function () { openViewer(cur + 1); });
   document.addEventListener('keydown', function (e) {
