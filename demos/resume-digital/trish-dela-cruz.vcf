@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Dela Cruz;Patricia;;;
+FN:Patricia Dela Cruz (Demo)
+TITLE:Virtual Assistant
+ORG:Demo profile - fictional
+TEL;TYPE=CELL:+639000000000
+EMAIL:trish@example.com
+NOTE:Fictional demo contact made by LedgeRays Systems. Not a real person.
+END:VCARD
